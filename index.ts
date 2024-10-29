@@ -10,6 +10,11 @@ oscServer.on('message', (msg, reqinfo) => {
   if (typeof (msg) === 'string') {
     msg = [msg]
   }
+  if (msg[0] !== '/osc-telemetry') {
+    console.error(`unknown message ${msg[0].substring(0, 16)}`)
+    return
+  }
+
   const now = new Date()
   const datestamp = now.toISOString().split('T')[0]
   const outFile = path.join('/osc-telemetry', 'data-' + datestamp + '.txt')
