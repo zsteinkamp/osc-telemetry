@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "lint": "npx eslint src/",
+    "build": "tsc",
+    "dev": "npm ci && tsc --watch & node --watch dist/index.js",
+    "start": "node dist/index.js"
+  },
+  "devDependencies": {
+    "@tsconfig/recommended": "^1.0.8",
+    "@types/node-osc": "^6.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.12.2",
+    "@typescript-eslint/parser": "^8.12.2",
+    "eslint": "^8.57.1",
+    "prettier": "^3.3.3",
+    "prettier-eslint": "^16.3.0",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "node-osc": "^9.1.4"
+  }
+}

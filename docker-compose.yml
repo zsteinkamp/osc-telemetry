@@ -1,0 +1,19 @@
+name: osc_prod
+services:
+  osc:
+    build:
+      target: prod
+    environment:
+      NODE_ENV: production
+    ports:
+      - '6374:6374/udp'
+    restart: unless-stopped
+    volumes:
+      - osc-telemetry:/osc-telemetry:ro
+volumes:
+  osc-telemetry:
+    driver: local
+    driver_opts:
+      type: "nfs4"
+      o: "addr=truenas.lan,vers=4,soft,nolock"
+      device: ":/mnt/data-pool/shared/osc-telemetry"
