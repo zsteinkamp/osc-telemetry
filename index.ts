@@ -3,7 +3,7 @@ import type nodeOsc = require('node-osc');
 import { Server } from 'node-osc'
 import path from 'path';
 import fs from 'fs';
-import maxmind from 'maxmind';
+import maxmind, { CountryResponse } from 'maxmind';
 
 (async () => {
   const oscServer = new Server(6374, '0.0.0.0', () => {
@@ -13,7 +13,7 @@ import maxmind from 'maxmind';
 
   const geolite2 = await import('geolite2-redist')
   const countryLookup = await geolite2.open(geolite2.GeoIpDbName.Country, (path: string) => {
-    return maxmind.open(path);
+    return maxmind.open<CountryResponse>(path);
   });
 
 
@@ -30,7 +30,8 @@ import maxmind from 'maxmind';
 
     let country = null
     try {
-      country = countryLookup.get(reqinfo.address)
+      const resp = countryLookup.get(reqinfo.address)
+      country = resp?.country?.iso_code
     } catch (e) {
       console.error(`country lookup failed for ${reqinfo.address}`)
     }
