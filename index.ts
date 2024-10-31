@@ -5,6 +5,17 @@ import path from 'path';
 import fs from 'fs';
 import maxmind, { CountryResponse } from 'maxmind';
 
+type PayloadType = {
+  date: string,
+  country: string | null,
+  device: nodeOsc.ArgumentType,
+  deviceBase: string | null,
+  deviceVersion: string | null,
+  host: nodeOsc.ArgumentType,
+  os: nodeOsc.ArgumentType,
+  arch: nodeOsc.ArgumentType,
+}
+
 (async () => {
   const oscServer = new Server(6374, '0.0.0.0', () => {
     console.log('OSC Server is listening');
@@ -22,7 +33,10 @@ import maxmind, { CountryResponse } from 'maxmind';
       console.error(`unknown message ${msg[0]?.toString().substring(0, 16)}`)
       return
     }
-    if (msg.length < 5) {
+
+    const [_, device, host, os, arch] = msg
+
+    if (device === undefined || host === undefined || os === undefined || arch === undefined) {
       const strMsg = msg.slice(0, 5).join(",")
       console.error(`invalid message ${strMsg.substring(0, 32)}... (${strMsg.length})`)
       return
@@ -36,17 +50,30 @@ import maxmind, { CountryResponse } from 'maxmind';
       console.error(`country lookup failed for ${reqinfo.address}`)
     }
 
+    let deviceBase = null
+    let deviceVersion = null
+
+    if (typeof (device) === 'string') {
+      const deviceArr = device.split('-')
+      if (deviceArr.length > 1) {
+        deviceVersion = deviceArr.pop()
+        deviceBase = deviceArr.join('-') // 
+      }
+    }
+
     const now = new Date()
     const nowIso = now.toISOString()
-    const payload = {
+    const payload: PayloadType = {
       date: nowIso,
-      ip: reqinfo.address,
       country,
-      device: msg[1],
-      host: msg[2],
-      os: msg[3],
-      arch: msg[4]
+      device,
+      deviceBase,
+      deviceVersion,
+      host,
+      os,
+      arch
     }
+
 
     const datestamp = nowIso.split('T')[0]
     const outFile = path.join('/osc-telemetry', 'data-' + datestamp + '.txt')
