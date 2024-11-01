@@ -7,10 +7,10 @@ import maxmind, { CountryResponse } from 'maxmind';
 
 type PayloadType = {
   date: string,
-  country: string | null,
+  country?: string | null,
   device: nodeOsc.ArgumentType,
   deviceBase: string | null,
-  deviceVersion: string | null,
+  deviceVersion?: string | null,
   host: nodeOsc.ArgumentType,
   os: nodeOsc.ArgumentType,
   arch: nodeOsc.ArgumentType,
@@ -74,13 +74,10 @@ type PayloadType = {
       arch
     }
 
-
     const datestamp = nowIso.split('T')[0]
     const outFile = path.join('/osc-telemetry', 'data-' + datestamp + '.txt')
 
-    const outLine = JSON.stringify(payload)
-
-    fs.appendFile(outFile, outLine + "\n", function (err) {
+    fs.appendFile(outFile, JSON.stringify(payload) + "\n", function (err) {
       if (err) {
         console.error(err)
         return
