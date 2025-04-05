@@ -15,5 +15,7 @@ so that I can more wisely invest my time. It also gives me a sense of
 satisfaction to know that my work is being used by many people around the
 world.
 
-As of April, 2025, there are about 800 people in 30 countries using my tools. I
-think that is pretty cool :)
+As of April, 2025, there are about 800 people in 30 countries using my tools
+each month.
+
+I think that is pretty cool :)
