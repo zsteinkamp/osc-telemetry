@@ -1,32 +1,33 @@
-import type nodeOsc = require('node-osc');
+import type nodeOsc = require('node-osc')
 
 import { Server } from 'node-osc'
-import path from 'path';
-import fs from 'fs';
-import maxmind, { CountryResponse } from 'maxmind';
+import path from 'path'
+import fs from 'fs'
+import maxmind, { CountryResponse } from 'maxmind'
+import { createHash } from 'crypto'
 
 type PayloadType = {
-  date: string,
-  country?: string | null,
-  device: nodeOsc.ArgumentType,
-  deviceBase: string | null,
-  deviceVersion?: string | null,
-  host: nodeOsc.ArgumentType,
-  os: nodeOsc.ArgumentType,
-  arch: nodeOsc.ArgumentType,
+  date: string
+  country?: string | null
+  device: nodeOsc.ArgumentType
+  deviceBase: string | null
+  deviceVersion?: string | null
+  host: nodeOsc.ArgumentType
+  os: nodeOsc.ArgumentType
+  arch: nodeOsc.ArgumentType
 }
-
-(async () => {
+;(async () => {
   const oscServer = new Server(6374, '0.0.0.0', () => {
-    console.log('OSC Server is listening');
-
-  });
+    console.log('OSC Server is listening')
+  })
 
   const geolite2 = await import('geolite2-redist')
-  const countryLookup = await geolite2.open(geolite2.GeoIpDbName.Country, (path: string) => {
-    return maxmind.open<CountryResponse>(path);
-  });
-
+  const countryLookup = await geolite2.open(
+    geolite2.GeoIpDbName.Country,
+    (path: string) => {
+      return maxmind.open<CountryResponse>(path)
+    }
+  )
 
   oscServer.on('message', (msg, reqinfo) => {
     if (!msg[0] || (msg[0] && msg[0] !== '/osc-telemetry')) {
@@ -36,9 +37,16 @@ type PayloadType = {
 
     const [_, device, host, os, arch] = msg
 
-    if (device === undefined || host === undefined || os === undefined || arch === undefined) {
-      const strMsg = msg.slice(0, 5).join(",")
-      console.error(`invalid message ${strMsg.substring(0, 32)}... (${strMsg.length})`)
+    if (
+      device === undefined ||
+      host === undefined ||
+      os === undefined ||
+      arch === undefined
+    ) {
+      const strMsg = msg.slice(0, 5).join(',')
+      console.error(
+        `invalid message ${strMsg.substring(0, 32)}... (${strMsg.length})`
+      )
       return
     }
 
@@ -53,11 +61,11 @@ type PayloadType = {
     let deviceBase = null
     let deviceVersion = null
 
-    if (typeof (device) === 'string') {
+    if (typeof device === 'string') {
       const deviceArr = device.split('-')
       if (deviceArr.length > 1) {
         deviceVersion = deviceArr.pop()
-        deviceBase = deviceArr.join('-') // 
+        deviceBase = deviceArr.join('-') //
       }
     }
 
@@ -69,20 +77,20 @@ type PayloadType = {
       device,
       deviceBase,
       deviceVersion,
-      host,
+      host: createHash('sha256').update(host.toString()).digest('base64'),
       os,
-      arch
+      arch,
     }
 
     const datestamp = nowIso.split('T')[0]
     const outFile = path.join('/osc-telemetry', 'data-' + datestamp + '.txt')
 
-    fs.appendFile(outFile, JSON.stringify(payload) + "\n", function (err) {
+    fs.appendFile(outFile, JSON.stringify(payload) + '\n', function (err) {
       if (err) {
         console.error(err)
         return
       }
-      console.log(`${nowIso} - Added ${payload.device} to ${outFile}`);
-    });
-  });
-})();
+      console.log(`${nowIso} - Added ${payload.device} to ${outFile}`)
+    })
+  })
+})()
